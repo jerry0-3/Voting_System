@@ -90,8 +90,8 @@ class DatabaseController:
         except sqlite3.Error as e:
             print(f"An error occurred during deletion: {e}")
 
-    def insert_glosowanie(self, minimalne_udzialy, temat, termin, czas_trwania, czy_zakonczone, spotkanie=1,
-                          administrator=1):
+    def insert_glosowanie(self, minimalne_udzialy, temat, termin, czas_trwania, czy_zakonczone,
+                          wybor_1='wybor 1', wybor_2='wybor 2', spotkanie=1, administrator=1):
         try:
             # Insert into Glosowania
             self.execute_query(
@@ -102,6 +102,12 @@ class DatabaseController:
                 """,
                 (minimalne_udzialy, temat, termin, czas_trwania, czy_zakonczone, spotkanie, administrator)
             )
+            glosowanie_id = self.get_all_glosowania()[-1][0]
+
+            # Insert into Mozliwe_wybory
+            self.insert_mozliwy_wybor(f'glosowanie {glosowanie_id} {wybor_1}', glosowanie_id)
+            self.insert_mozliwy_wybor(f'glosowanie {glosowanie_id} {wybor_2}', glosowanie_id)
+
         except sqlite3.Error as e:
             print(f"An error occurred during insertion: {e}")
 
@@ -150,20 +156,20 @@ class DatabaseController:
         return self.execute_query(query, (glosowanie_id,), fetch_all=True)
 
     def get_mozliwy_wybor_by_id_by_glosowanie_id(self, mozliwy_wybor_id, glosowanie_id):
-        query = "SELECT * FROM Mozliwe_wybory WHERE glosowanie = ? AND id =?"
+        query = "SELECT * FROM Mozliwe_wybory WHERE glosowanie = ? AND id = ?"
         return self.execute_query(query, (glosowanie_id, mozliwy_wybor_id), fetch_one=True)
 
     def update_mozliwy_wybor(self, mozliwy_wybor_id, glosowanie_id, tresc=None):
         query = """
                 UPDATE Mozliwe_wybory
-                SET tresc = COALESCE(?, tresc),
-                WHERE glosowanie = ? AND id =?
+                SET tresc = COALESCE(?, tresc)
+                WHERE glosowanie = ? AND id = ?
                 """
         self.execute_query(query, (tresc, glosowanie_id, mozliwy_wybor_id))
 
     def delete_mozliwy_wybor(self, mozliwy_wybor_id, glosowanie_id):
         try:
-            self.execute_query("DELETE FROM Mozliwe_wybory WHERE glosowanie = ? AND id =?",
+            self.execute_query("DELETE FROM Mozliwe_wybory WHERE glosowanie = ? AND id = ?",
                                (glosowanie_id, mozliwy_wybor_id))
         except sqlite3.Error as e:
             print(f"An error occurred during deletion: {e}")

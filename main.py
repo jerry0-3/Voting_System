@@ -7,14 +7,6 @@ if __name__ == '__main__':
     controller = DatabaseController()
     insert_start_values(controller)
 
-    # controller.execute_query(
-    #     "INSERT INTO Wagi_glosow (udzialy) VALUES (?) RETURNING id",
-    #     params=(100,),
-    #     fetch_one=True
-    # )
-    # get = controller.execute_query("SELECT * FROM Wagi_glosow", fetch_all=True)
-    # print(get)
-
     # Example: Add a new udzialowiec
     udzialowcy = controller.get_all_udzialowcy()
     if len(udzialowcy) == 0:
