@@ -1,52 +1,20 @@
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-                               QListWidget, QStackedWidget, QMessageBox, QInputDialog)
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QMessageBox,
+                               QInputDialog)
 from PySide6.QtCore import Qt
 
 
-class VotingSystemGUI(QMainWindow):
-    def __init__(self, db_controller):
-        super().__init__()
-        self.current_voting_id = None
-        self.current_choice_id = None
-        self.current_choice_text = None
+class VotingScreen:
+    def __init__(self, stack, db_controller):
+        self.stack = stack
         self.db_controller = db_controller
+        self.init_ui()
 
-        self.setWindowTitle("System Głosowania")
-        self.setGeometry(100, 100, 800, 600)
-
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-
-        self.main_layout = QVBoxLayout()
-        self.central_widget.setLayout(self.main_layout)
-
-        self.stack = QStackedWidget()
-        self.main_layout.addWidget(self.stack)
-
-        self.create_home_screen()
+    def init_ui(self):
+        """Tworzy potrzebne ekrany po naciśnięciu przycisku."""
         self.create_voting_screen()
         self.create_choices_screen()
         self.create_edit_choice_screen()
         self.create_shareholders_screen()
-
-        self.stack.setCurrentWidget(self.home_screen)
-
-    def create_home_screen(self):
-        self.home_screen = QWidget()
-        layout = QVBoxLayout()
-
-        self.voting_button = QPushButton("Przejdź do głosowań")
-        self.voting_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.voting_screen))
-        self.shareholders_button = QPushButton("Przejdź do udziałowców")
-        self.shareholders_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.shareholders_screen))
-
-        layout.addStretch()
-        layout.addWidget(self.voting_button, alignment=Qt.AlignCenter)
-        layout.addWidget(self.shareholders_button, alignment=Qt.AlignCenter)
-        layout.addStretch()
-
-        self.home_screen.setLayout(layout)
-        self.stack.addWidget(self.home_screen)
 
     def create_voting_screen(self):
         self.voting_screen = QWidget()
@@ -66,7 +34,7 @@ class VotingSystemGUI(QMainWindow):
         buttons_layout.addWidget(add_voting_button)
 
         back_button = QPushButton("Powrót")
-        back_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.home_screen))
+        back_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.stack.widget(0)))
         buttons_layout.addWidget(back_button)
 
         layout.addLayout(buttons_layout)
@@ -180,13 +148,13 @@ class VotingSystemGUI(QMainWindow):
         self.stack.setCurrentWidget(self.choice_screen)
 
     def add_voting(self):
-        text, ok = QInputDialog.getText(self, "Dodaj głosowanie", "Wpisz temat głosowania:")
+        text, ok = QInputDialog.getText(self.voting_screen, "Dodaj głosowanie", "Wpisz temat głosowania:")
         if ok and text:
             self.db_controller.insert_glosowanie(0, text, '2025-01-30 15:00:00', '02:00:00', False)
             self.load_votings()
 
     def edit_voting(self):
-        new_text, ok = QInputDialog.getText(self, "Edytuj głosowanie", "Podaj nowy temat:")
+        new_text, ok = QInputDialog.getText(self.choices_screen, "Edytuj głosowanie", "Podaj nowy temat:")
         if ok and new_text:
             self.db_controller.update_glosowanie(self.current_voting_id, temat=new_text)
             self.load_votings()
@@ -200,16 +168,16 @@ class VotingSystemGUI(QMainWindow):
             self.load_votings()
 
     def add_choice(self):
-        text, ok = QInputDialog.getText(self, "Dodaj wybór", "Wpisz treść wyboru:")
+        text, ok = QInputDialog.getText(self.choices_screen, "Dodaj wybór", "Wpisz treść wyboru:")
         if ok and text:
             self.db_controller.insert_mozliwy_wybor(text, self.current_voting_id)
             self.load_choices()
 
     def edit_choice(self):
-        new_text, ok = QInputDialog.getText(self, "Edytuj wybór", "Podaj nową treść:")
+        new_text, ok = QInputDialog.getText(self.choices_screen, "Edytuj wybór", "Podaj nową treść:")
         if ok and new_text:
             print(self.current_choice_id, self.current_voting_id, new_text)
-            # self.db_controller.update_mozliwy_wybor(self.current_choice_id, self.voting_id, new_text)
+            self.db_controller.update_mozliwy_wybor(self.current_choice_id, self.current_voting_id, new_text)
             self.load_choices()
 
     def delete_choice(self):
@@ -219,12 +187,3 @@ class VotingSystemGUI(QMainWindow):
             self.db_controller.delete_mozliwy_wybor(self.current_choice_id, self.current_voting_id)
             self.load_choices()
             self.stack.setCurrentWidget(self.choices_screen)
-
-
-def start_application(db_controller):
-    app = QApplication([])
-
-    gui = VotingSystemGUI(db_controller)
-    gui.show()
-
-    app.exec()

@@ -1,5 +1,5 @@
 from Database import create_tables, DatabaseController, insert_start_values
-from GUI.Jeremiasz_PU.Voting_GUI import start_application
+from GUI.HomeScreen import start_application
 
 if __name__ == '__main__':
     create_tables()
