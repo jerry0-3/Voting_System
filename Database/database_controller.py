@@ -61,7 +61,8 @@ class DatabaseController:
         query = "SELECT * FROM Udzialowcy WHERE id = ?"
         return self.execute_query(query, (udzialowiec_id,), fetch_one=True)
 
-    def update_udzialowiec(self, udzialowiec_id, login=None, haslo=None, imie=None, nazwisko=None):
+    def update_udzialowiec(self, udzialowiec_id, login=None, haslo=None, imie=None, nazwisko=None, udzialy=None):
+        # Update udzialowiec
         query = """
         UPDATE Udzialowcy
         SET login = COALESCE(?, login),
@@ -71,6 +72,23 @@ class DatabaseController:
         WHERE id = ?
         """
         self.execute_query(query, (login, haslo, imie, nazwisko, udzialowiec_id))
+
+        # Update waga glosu
+        waga_glosu_id = self.execute_query("SELECT waga_glosu FROM Udzialowcy WHERE id = ?", (udzialowiec_id,),
+                                           fetch_one=True)[0]
+        self.update_waga_glosu(waga_glosu_id, udzialy)
+
+    def get_waga_glosu_by_id(self, waga_glosu_id):
+        query = "SELECT * FROM Wagi_glosow WHERE id = ?"
+        return self.execute_query(query, (waga_glosu_id,), fetch_one=True)
+
+    def update_waga_glosu(self, waga_glosu_id, udzialy):
+        query = """
+                UPDATE Wagi_glosow
+                SET udzialy = COALESCE(?, udzialy)
+                WHERE id = ?
+                """
+        self.execute_query(query, (udzialy, waga_glosu_id))
 
     def delete_udzialowiec(self, udzialowiec_id):
         try:
@@ -174,14 +192,6 @@ class DatabaseController:
         except sqlite3.Error as e:
             print(f"An error occurred during deletion: {e}")
 
-
-# Example usage
-if __name__ == "__main__":
-    controller = DatabaseController()
-
-    # Example: Add a new udzialowiec
-    controller.insert_udzialowiec("jan_kowalski", "password123", "Jan", "Kowalski", 100)
-
-    # Fetch and print all udzialowcy
-    udzialowcy = controller.get_all_udzialowcy()
-    print(udzialowcy)
+    def get_count_mozliwe_wybory(self, glosowanie_id):
+        query = "SELECT COUNT(*) FROM Mozliwe_wybory WHERE glosowanie = ?"
+        return self.execute_query(query, (glosowanie_id,), fetch_one=True)[0]

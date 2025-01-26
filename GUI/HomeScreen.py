@@ -1,12 +1,17 @@
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QMainWindow, QApplication, QStackedWidget, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QMainWindow, QApplication, QStackedWidget, QWidget, QLabel
 from PySide6.QtCore import Qt
 
+from GUI.Jeremiasz_PU.ShareholderScreen import ShareholderScreen
 from GUI.Jeremiasz_PU.VotingScreen import VotingScreen
 
 
 class HomeScreen(QMainWindow):
     def __init__(self, db_controller):
         super().__init__()
+        self.shareholders_button = None
+        self.voting_button = None
+        self.layout = None
+        self.home_screen = QWidget()
         self.setWindowTitle("System Głosowania")
         self.setGeometry(100, 100, 800, 600)
 
@@ -29,11 +34,15 @@ class HomeScreen(QMainWindow):
         self.home_screen = QWidget()
         self.layout = QVBoxLayout()
 
+        title_label = QLabel("<h1>System Głosowania</h1>")
+        title_label.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(title_label)
+
         self.voting_button = QPushButton("Przejdź do głosowań")
-        self.voting_button.clicked.connect(self.on_voting_clicked)
+        self.voting_button.clicked.connect(lambda: print("placeholder function"))
 
         self.shareholders_button = QPushButton("Przejdź do udziałowców")
-        self.shareholders_button.clicked.connect(self.on_shareholders_clicked)
+        self.shareholders_button.clicked.connect(lambda: print("placeholder function"))
 
         self.layout.addStretch()
         self.layout.addWidget(self.voting_button, alignment=Qt.AlignCenter)
@@ -43,20 +52,6 @@ class HomeScreen(QMainWindow):
         self.home_screen.setLayout(self.layout)
         self.stack.addWidget(self.home_screen)
 
-    def add_custom_button(self, text, callback):
-        """Dodaj dodatkowy przycisk do ekranu głównego."""
-        button = QPushButton(text)
-        button.clicked.connect(callback)
-        self.layout.insertWidget(self.layout.count() - 1, button, alignment=Qt.AlignCenter)
-
-    def on_voting_clicked(self):
-        """Metoda wywoływana po kliknięciu 'Przejdź do głosowań'."""
-        print("Przejdź do głosowań.")
-
-    def on_shareholders_clicked(self):
-        """Metoda wywoływana po kliknięciu 'Przejdź do udziałowców'."""
-        print("Przejdź do udziałowców.")
-
 
 def start_application(db_controller):
     app = QApplication([])
@@ -65,10 +60,14 @@ def start_application(db_controller):
 
     # Rejestracja dodatkowych ekranów
     voting_screen = VotingScreen(home_screen.stack, db_controller)
+    shareholder_screen = ShareholderScreen(home_screen.stack, db_controller)
 
     # Przypisanie akcji do przycisku w HomeScreen
     home_screen.voting_button.clicked.connect(
         lambda: home_screen.stack.setCurrentWidget(voting_screen.voting_screen)
+    )
+    home_screen.shareholders_button.clicked.connect(
+        lambda: home_screen.stack.setCurrentWidget(shareholder_screen.shareholders_screen)
     )
 
     home_screen.show()

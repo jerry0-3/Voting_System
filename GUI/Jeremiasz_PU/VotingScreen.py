@@ -1,10 +1,28 @@
+import re
+
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QMessageBox,
-                               QInputDialog)
+                               QInputDialog, QDialog, QLineEdit)
 from PySide6.QtCore import Qt
 
 
 class VotingScreen:
     def __init__(self, stack, db_controller):
+        self.current_choice_id = None
+        self.current_voting_id = None
+        self.back_button = None
+        self.delete_button = None
+        self.edit_button = None
+        self.edit_choice_label = None
+        self.choice_screen = None
+        self.back_to_voting_button = None
+        self.add_choice_button = None
+        self.choices_list = None
+        self.choices_label = None
+        self.delete_voting_button = None
+        self.edit_voting_button = None
+        self.choices_screen = None
+        self.voting_list = None
+        self.voting_screen = None
         self.stack = stack
         self.db_controller = db_controller
         self.init_ui()
@@ -14,7 +32,6 @@ class VotingScreen:
         self.create_voting_screen()
         self.create_choices_screen()
         self.create_edit_choice_screen()
-        self.create_shareholders_screen()
 
     def create_voting_screen(self):
         self.voting_screen = QWidget()
@@ -105,23 +122,6 @@ class VotingScreen:
         self.choice_screen.setLayout(layout)
         self.stack.addWidget(self.choice_screen)
 
-    def create_shareholders_screen(self):
-        self.shareholders_screen = QWidget()
-        layout = QVBoxLayout()
-
-        shareholders_label = QLabel("Udziałowcy")
-        layout.addWidget(shareholders_label)
-
-        self.shareholders_list = QListWidget()
-        layout.addWidget(self.shareholders_list)
-
-        back_button = QPushButton("Powrót")
-        back_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.home_screen))
-        layout.addWidget(back_button)
-
-        self.shareholders_screen.setLayout(layout)
-        self.stack.addWidget(self.shareholders_screen)
-
     def load_votings(self):
         self.voting_list.clear()
         votings = self.db_controller.get_all_glosowania()
@@ -143,24 +143,139 @@ class VotingScreen:
 
     def edit_choice_screen(self, index):
         self.current_choice_id = int(self.choices_list.item(index.row()).text().split(":")[0])
-        self.current_choice_text = self.choices_list.item(index.row()).text().split(":")[1]
-        self.edit_choice_label.setText(f"Edycja Wyboru: {self.current_choice_text}")
+        current_choice_text = self.choices_list.item(index.row()).text().split(":")[1]
+        self.edit_choice_label.setText(f"Edycja Wyboru: {current_choice_text}")
         self.stack.setCurrentWidget(self.choice_screen)
 
     def add_voting(self):
-        text, ok = QInputDialog.getText(self.voting_screen, "Dodaj głosowanie", "Wpisz temat głosowania:")
-        if ok and text:
-            self.db_controller.insert_glosowanie(0, text, '2025-01-30 15:00:00', '02:00:00', False)
+        dialog = QDialog(self.voting_screen)
+        dialog.setWindowTitle("Dodaj głosowanie")
+        dialog_layout = QVBoxLayout()
+
+        fields = {}
+        fields_data = ["Minimalne Udziały", "Temat", "Termin (YYYY-MM-DD HH:MM:SS)", "Czas Trwania (HH:MM:SS)",
+                       "Czy Zakończone"]
+
+        for field in fields_data:
+            field_layout = QHBoxLayout()
+            label = QLabel(field + ":")
+            field_input = QLineEdit()
+            fields[field.lower()] = field_input
+
+            field_layout.addWidget(label)
+            field_layout.addWidget(field_input)
+            dialog_layout.addLayout(field_layout)
+
+        buttons_layout = QHBoxLayout()
+        save_button = QPushButton("Dodaj")
+        save_button.clicked.connect(lambda: self.save_new_voting(dialog, fields))
+        buttons_layout.addWidget(save_button)
+
+        cancel_button = QPushButton("Anuluj")
+        cancel_button.clicked.connect(dialog.reject)
+        buttons_layout.addWidget(cancel_button)
+
+        dialog_layout.addLayout(buttons_layout)
+        dialog.setLayout(dialog_layout)
+        dialog.exec()
+
+    def save_new_voting(self, dialog, fields):
+        minimalne_udzialy = fields["minimalne udziały"].text()
+        temat = fields["temat"].text()
+        termin = fields["termin (yyyy-mm-dd hh:mm:ss)"].text()
+        czas_trwania = fields["czas trwania (hh:mm:ss)"].text()
+        czy_zakonczone = fields["czy zakończone"].text().lower() in ("true", "1", "tak")
+
+        datetime_pattern = r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
+        time_pattern = r"\d{2}:\d{2}:\d{2}"
+
+        if (
+                minimalne_udzialy.isdigit()
+                and temat
+                and self.validate_datetime(termin, datetime_pattern)
+                and self.validate_datetime(czas_trwania, time_pattern)
+        ):
+            self.db_controller.insert_glosowanie(
+                int(minimalne_udzialy), temat, termin, czas_trwania, czy_zakonczone
+            )
             self.load_votings()
+            dialog.accept()
+        else:
+            QMessageBox.warning(dialog, "Błąd", "Wszystkie pola muszą być wypełnione poprawnie!", QMessageBox.Ok)
 
     def edit_voting(self):
-        new_text, ok = QInputDialog.getText(self.choices_screen, "Edytuj głosowanie", "Podaj nowy temat:")
-        if ok and new_text:
-            self.db_controller.update_glosowanie(self.current_voting_id, temat=new_text)
+        dialog = QDialog(self.voting_screen)
+        dialog.setWindowTitle("Edytuj głosowanie")
+        dialog_layout = QVBoxLayout()
+
+        fields = {}
+        fields_data = ["Minimalne Udziały", "Temat", "Termin (YYYY-MM-DD HH:MM:SS)", "Czas Trwania (HH:MM:SS)",
+                       "Czy Zakończone"]
+
+        for field in fields_data:
+            field_layout = QHBoxLayout()
+            label = QLabel(field + ":")
+            field_input = QLineEdit()
+            fields[field.lower()] = field_input
+
+            field_layout.addWidget(label)
+            field_layout.addWidget(field_input)
+            dialog_layout.addLayout(field_layout)
+
+        # Wypełnianie aktualnymi danymi głosowania
+        voting = self.db_controller.get_glosowanie_by_id(self.current_voting_id)
+        if voting:
+            fields["minimalne udziały"].setText(str(voting[1]))
+            fields["temat"].setText(voting[2])
+            fields["termin (yyyy-mm-dd hh:mm:ss)"].setText(voting[3])
+            fields["czas trwania (hh:mm:ss)"].setText(voting[4])
+            fields["czy zakończone"].setText("Tak" if voting[5] else "Nie")
+
+        buttons_layout = QHBoxLayout()
+        save_button = QPushButton("Zapisz")
+        save_button.clicked.connect(lambda: self.save_edited_voting(dialog, fields))
+        buttons_layout.addWidget(save_button)
+
+        cancel_button = QPushButton("Anuluj")
+        cancel_button.clicked.connect(dialog.reject)
+        buttons_layout.addWidget(cancel_button)
+
+        dialog_layout.addLayout(buttons_layout)
+        dialog.setLayout(dialog_layout)
+        dialog.exec()
+
+    def save_edited_voting(self, dialog, fields):
+        minimalne_udzialy = fields["minimalne udziały"].text()
+        temat = fields["temat"].text()
+        termin = fields["termin (yyyy-mm-dd hh:mm:ss)"].text()
+        czas_trwania = fields["czas trwania (hh:mm:ss)"].text()
+        czy_zakonczone = fields["czy zakończone"].text().lower() in ("true", "1", "tak")
+
+        datetime_pattern = r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
+        time_pattern = r"\d{2}:\d{2}:\d{2}"
+
+        if (
+                minimalne_udzialy.isdigit()
+                and temat
+                and self.validate_datetime(termin, datetime_pattern)
+                and self.validate_datetime(czas_trwania, time_pattern)
+        ):
+            self.db_controller.update_glosowanie(
+                self.current_voting_id,
+                minimalne_udzialy=int(minimalne_udzialy),
+                temat=temat,
+                termin=termin,
+                czas_trwania=czas_trwania,
+                czy_zakonczone=czy_zakonczone
+            )
             self.load_votings()
+            dialog.accept()
+        else:
+            QMessageBox.warning(dialog, "Błąd", "Wszystkie pola muszą być wypełnione poprawnie!", QMessageBox.Ok)
 
     def delete_voting(self):
-        confirm = QMessageBox.question(self, "Usuń głosowanie", "Czy na pewno chcesz usunąć to głosowanie?",
+        confirm = QMessageBox.question(self.choices_screen, "Usuń głosowanie",
+                                       "Czy na pewno chcesz usunąć to głosowanie?",
                                        QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
             self.db_controller.delete_glosowanie(self.current_voting_id)
@@ -174,16 +289,25 @@ class VotingScreen:
             self.load_choices()
 
     def edit_choice(self):
-        new_text, ok = QInputDialog.getText(self.choices_screen, "Edytuj wybór", "Podaj nową treść:")
+        new_text, ok = QInputDialog.getText(self.choice_screen, "Edytuj wybór", "Podaj nową treść:")
         if ok and new_text:
             print(self.current_choice_id, self.current_voting_id, new_text)
             self.db_controller.update_mozliwy_wybor(self.current_choice_id, self.current_voting_id, new_text)
             self.load_choices()
 
     def delete_choice(self):
-        confirm = QMessageBox.question(self, "Usuń wybór", "Czy na pewno chcesz usunąć ten wybór?",
-                                       QMessageBox.Yes | QMessageBox.No)
-        if confirm == QMessageBox.Yes:
-            self.db_controller.delete_mozliwy_wybor(self.current_choice_id, self.current_voting_id)
-            self.load_choices()
-            self.stack.setCurrentWidget(self.choices_screen)
+        count_mozliwe_wybory = self.db_controller.get_count_mozliwe_wybory(self.current_voting_id)
+        if count_mozliwe_wybory > 2:
+            confirm = QMessageBox.question(self.choice_screen, "Usuń wybór", "Czy na pewno chcesz usunąć ten wybór?",
+                                           QMessageBox.Yes | QMessageBox.No)
+            if confirm == QMessageBox.Yes:
+                self.db_controller.delete_mozliwy_wybor(self.current_choice_id, self.current_voting_id)
+                self.load_choices()
+                self.stack.setCurrentWidget(self.choices_screen)
+        else:
+            QMessageBox.warning(self.choice_screen, "Błąd", "Nie można usunąć wyboru!", QMessageBox.Ok)
+
+    @staticmethod
+    def validate_datetime(value, pattern):
+        """Sprawdza, czy wartość daty/czasu pasuje do wzorca."""
+        return re.fullmatch(pattern, value) is not None
