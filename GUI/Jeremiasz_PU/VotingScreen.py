@@ -3,10 +3,14 @@ import re
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QMessageBox,
                                QInputDialog, QDialog, QLineEdit)
 from PySide6.QtCore import Qt
+from ..Piotr_PU.ApproveVoting import ApproveVoting
 
 
 class VotingScreen:
     def __init__(self, stack, db_controller):
+        self.choises_label = None
+        self.edit_voting_button = None
+        self.approve_voting_button = None
         self.current_choice_id = None
         self.current_voting_id = None
         self.back_button = None
@@ -17,15 +21,16 @@ class VotingScreen:
         self.back_to_voting_button = None
         self.add_choice_button = None
         self.choices_list = None
-        self.choices_label = None
+        self.title_label = None
         self.delete_voting_button = None
-        self.edit_voting_button = None
         self.choices_screen = None
         self.voting_list = None
         self.voting_screen = None
         self.stack = stack
         self.db_controller = db_controller
         self.init_ui()
+        self.approve_voting_handler = ApproveVoting(self.db_controller, self.stack)
+
 
     def init_ui(self):
         """Tworzy potrzebne ekrany po naciśnięciu przycisku."""
@@ -64,7 +69,40 @@ class VotingScreen:
         self.choices_screen = QWidget()
         layout = QVBoxLayout()
 
+        self.title_label = QLabel("<h1>Głosowanie: [Tytuł]</h1>")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.title_label)
+
+        # Poprawna inicjalizacja self.choices_label
+        self.choices_label = QLabel("Wybory w głosowaniu:")
+        layout.addWidget(self.choices_label)
+
+        # Lista wyborów
+        self.choices_list = QListWidget()
+        self.choices_list.clicked.connect(self.edit_choice_screen)
+        layout.addWidget(self.choices_list)
+
+        # Dolne przyciski: Dodaj wybór, Powrót
+        buttons_layout = QHBoxLayout()
+
+        self.add_choice_button = QPushButton("Dodaj wybór")
+        self.add_choice_button.clicked.connect(self.add_choice)
+        buttons_layout.addWidget(self.add_choice_button)
+
+        layout.addLayout(buttons_layout)
+
         top_buttons_layout = QHBoxLayout()
+
+        self.approve_voting_button = QPushButton("Zatwierdź głosowanie")
+        self.approve_voting_button.clicked.connect(
+            lambda: self.approve_voting_handler.approve_voting(
+                self.current_voting_id,
+                self.choices_screen,
+                self.voting_screen,
+                self.load_votings
+            )
+        )
+        top_buttons_layout.addWidget(self.approve_voting_button)
 
         self.edit_voting_button = QPushButton("Edytuj głosowanie")
         self.edit_voting_button.clicked.connect(self.edit_voting)
@@ -74,25 +112,12 @@ class VotingScreen:
         self.delete_voting_button.clicked.connect(self.delete_voting)
         top_buttons_layout.addWidget(self.delete_voting_button)
 
+        self.back_to_voting_button = QPushButton("Powrót")
+        self.back_to_voting_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.voting_screen))
+        top_buttons_layout.addWidget(self.back_to_voting_button)
+
         layout.addLayout(top_buttons_layout)
 
-        self.choices_label = QLabel("Wybory w głosowaniu")
-        layout.addWidget(self.choices_label)
-
-        self.choices_list = QListWidget()
-        self.choices_list.clicked.connect(self.edit_choice_screen)
-        layout.addWidget(self.choices_list)
-
-        buttons_layout = QHBoxLayout()
-        self.add_choice_button = QPushButton("Dodaj wybór")
-        self.add_choice_button.clicked.connect(self.add_choice)
-        buttons_layout.addWidget(self.add_choice_button)
-
-        self.back_to_voting_button = QPushButton("Powrót do głosowań")
-        self.back_to_voting_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.voting_screen))
-        buttons_layout.addWidget(self.back_to_voting_button)
-
-        layout.addLayout(buttons_layout)
         self.choices_screen.setLayout(layout)
         self.stack.addWidget(self.choices_screen)
 
@@ -130,7 +155,7 @@ class VotingScreen:
 
     def open_choices_screen(self, item):
         self.current_voting_id = int(item.text().split(":")[0])
-        self.choices_label.setText(f"Wybory w głosowaniu: {item.text().split(':')[1]}")
+        self.title_label.setText(f"<h1>Głosowanie: {item.text().split(':')[1]}</h1>")
         self.load_choices()
         self.stack.setCurrentWidget(self.choices_screen)
 

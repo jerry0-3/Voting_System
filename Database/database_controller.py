@@ -195,3 +195,8 @@ class DatabaseController:
     def get_count_mozliwe_wybory(self, glosowanie_id):
         query = "SELECT COUNT(*) FROM Mozliwe_wybory WHERE glosowanie = ?"
         return self.execute_query(query, (glosowanie_id,), fetch_one=True)[0]
+
+    def approve_glosowanie(self, voting_id):
+        query = "UPDATE Glosowania SET czy_zakonczone = 1 WHERE id = ?"
+        self.execute_query(query, (voting_id,))
+        print(f"Głosowanie o ID {voting_id} zostało zatwierdzone.")

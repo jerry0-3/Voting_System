@@ -1,8 +1,10 @@
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QMainWindow, QApplication, QStackedWidget, QWidget, QLabel
 from PySide6.QtCore import Qt
 
-from GUI.Jeremiasz_PU.ShareholderScreen import ShareholderScreen
-from GUI.Jeremiasz_PU.VotingScreen import VotingScreen
+from Voting_System.GUI.Jeremiasz_PU.ShareholderScreen import ShareholderScreen
+from Voting_System.GUI.Jeremiasz_PU.VotingScreen import VotingScreen
+
+from Voting_System.GUI.Piotr_PU.MeetingsScreen import MeetingsScreen
 
 
 class HomeScreen(QMainWindow):
@@ -44,6 +46,9 @@ class HomeScreen(QMainWindow):
         self.shareholders_button = QPushButton("Przejdź do udziałowców")
         self.shareholders_button.clicked.connect(lambda: print("placeholder function"))
 
+        self.meetings_button = QPushButton("Przejdź do spotkań")
+        self.meetings_button.clicked.connect(lambda: print("placeholder function"))
+
         self.layout.addStretch()
         self.layout.addWidget(self.voting_button, alignment=Qt.AlignCenter)
         self.layout.addWidget(self.shareholders_button, alignment=Qt.AlignCenter)
@@ -61,6 +66,7 @@ def start_application(db_controller):
     # Rejestracja dodatkowych ekranów
     voting_screen = VotingScreen(home_screen.stack, db_controller)
     shareholder_screen = ShareholderScreen(home_screen.stack, db_controller)
+    meetings_screen = MeetingsScreen(home_screen.stack, db_controller)
 
     # Przypisanie akcji do przycisku w HomeScreen
     home_screen.voting_button.clicked.connect(
@@ -69,6 +75,8 @@ def start_application(db_controller):
     home_screen.shareholders_button.clicked.connect(
         lambda: home_screen.stack.setCurrentWidget(shareholder_screen.shareholders_screen)
     )
-
+    home_screen.meetings_button.clicked.connect(
+        lambda: home_screen.stack.setCurrentWidget(shareholder_screen.shareholders_screen)
+    )
     home_screen.show()
     app.exec()
