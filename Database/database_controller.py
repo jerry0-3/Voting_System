@@ -215,6 +215,17 @@ class DatabaseController:
         """
         self.execute_query(query, (date, duration, is_completed, admin_id))
 
+    def get_meeting_title_by_id(self, meeting_id):
+        """
+        Pobiera tytuł (termin) spotkania na podstawie jego ID.
+
+        :param meeting_id: ID spotkania
+        :return: Tytuł (termin) spotkania jako string lub None, jeśli nie znaleziono
+        """
+        query = "SELECT termin FROM Spotkania WHERE id = ?"
+        result = self.execute_query(query, (meeting_id,), fetch_one=True)
+        return result[0] if result else None
+
     def delete_meeting(self, meeting_id):
         """Usuwa spotkanie na podstawie ID."""
         query = "DELETE FROM Spotkania WHERE id = ?"

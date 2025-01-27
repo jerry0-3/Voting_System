@@ -21,13 +21,13 @@ class MeetingsScreen:
 
     def init_ui(self):
         self.create_meeting_screen()
-        self.stack.addWidget(self.voting_screen.voting_screen)  # Dodanie ekranu głosowań do stosu
+        self.stack.addWidget(self.voting_screen.voting_screen)
 
     def create_meeting_screen(self):
         self.meeting_screen = QWidget()
         layout = QVBoxLayout()
 
-        self.title_label = QLabel("<h1>Spotkania</h1>")
+        self.title_label = QLabel("<h1>Lista Spotkań</h1>")
         self.title_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.title_label)
 

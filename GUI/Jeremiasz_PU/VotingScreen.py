@@ -8,7 +8,9 @@ from ..Piotr_PU.ApproveVoting import ApproveVoting
 
 class VotingScreen:
     def __init__(self, stack, db_controller):
+        self.current_meeting_title = None
         self.current_meeting_id = None
+
         self.choises_label = None
         self.edit_voting_button = None
         self.approve_voting_button = None
@@ -34,6 +36,8 @@ class VotingScreen:
 
     def set_current_meeting_id(self, meeting_id):
         current_meeting_id = meeting_id
+        self.current_meeting_title = self.db_controller.get_meeting_title_by_id(meeting_id)
+
 
     def init_ui(self):
         """Tworzy potrzebne ekrany po naciśnięciu przycisku."""
@@ -45,12 +49,20 @@ class VotingScreen:
         self.voting_screen = QWidget()
         layout = QVBoxLayout()
 
+        self.title_label = QLabel("<h1>Spotkanie</h1>")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.title_label)
+
         voting_label = QLabel("Głosowania")
         layout.addWidget(voting_label)
 
         self.voting_list = QListWidget()
         self.voting_list.itemClicked.connect(self.open_choices_screen)
         layout.addWidget(self.voting_list)
+
+        self.message_label = QLabel("")
+        self.message_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.message_label)
 
         buttons_layout = QHBoxLayout()
 
@@ -151,13 +163,26 @@ class VotingScreen:
         self.stack.addWidget(self.choice_screen)
 
     def load_votings(self):
+        """Ładuje głosowania i ustawia odpowiednie wiadomości."""
         self.voting_list.clear()
+
+        # Ustawianie tytułu strony
+        if self.current_meeting_title:
+            self.title_label.setText(f"<h1>Spotkanie {self.current_meeting_title}</h1>")
+        else:
+            self.title_label.setText("<h1>Spotkanie </h1>")
+
         if self.current_meeting_id is None:
             votings = self.db_controller.get_all_glosowania()
         else:
             votings = self.db_controller.get_glosowania_by_meeting_id(self.current_meeting_id)
-        for voting in votings:
-            self.voting_list.addItem(f"{voting[0]}: {voting[2]}")
+
+        if not votings:
+            self.message_label.setText("Brak dostępnych głosowań.")
+        else:
+            self.message_label.setText("")  # Czyszczenie wiadomości, jeśli są głosowania
+            for voting in votings:
+                self.voting_list.addItem(f"{voting[0]}: {voting[2]}")
 
     def open_choices_screen(self, item):
         self.current_voting_id = int(item.text().split(":")[0])
