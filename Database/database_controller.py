@@ -108,6 +108,7 @@ class DatabaseController:
     def insert_glosowanie(self, minimalne_udzialy, temat, termin, czas_trwania, czy_zakonczone, spotkanie,
                           wybor_1='wybor 1', wybor_2='wybor 2', administrator=1):
         try:
+            if spotkanie is None: spotkanie = 1
             # Insert into Glosowania
             self.execute_query(
                 """

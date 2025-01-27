@@ -231,6 +231,10 @@ class VotingScreen:
             )
             self.load_votings()
             dialog.accept()
+
+            QMessageBox.information(self.voting_screen, "Sukces", f"Głosowanie zostało pomyślnie stworzone!",
+                                    QMessageBox.Ok)
+
         else:
             QMessageBox.warning(dialog, "Błąd", "Wszystkie pola muszą być wypełnione poprawnie!", QMessageBox.Ok)
 
