@@ -10,6 +10,7 @@ from Voting_System.GUI.Piotr_PU.MeetingsScreen import MeetingsScreen
 class HomeScreen(QMainWindow):
     def __init__(self, db_controller):
         super().__init__()
+        self.meetings_button = None
         self.shareholders_button = None
         self.voting_button = None
         self.layout = None
@@ -32,7 +33,6 @@ class HomeScreen(QMainWindow):
         self.stack.setCurrentWidget(self.home_screen)
 
     def init_ui(self):
-        """Inicjalizuje podstawowy ekran główny."""
         self.home_screen = QWidget()
         self.layout = QVBoxLayout()
 
@@ -50,6 +50,7 @@ class HomeScreen(QMainWindow):
         self.meetings_button.clicked.connect(lambda: print("placeholder function"))
 
         self.layout.addStretch()
+        self.layout.addWidget(self.meetings_button, alignment=Qt.AlignCenter)
         self.layout.addWidget(self.voting_button, alignment=Qt.AlignCenter)
         self.layout.addWidget(self.shareholders_button, alignment=Qt.AlignCenter)
         self.layout.addStretch()
@@ -63,12 +64,10 @@ def start_application(db_controller):
 
     home_screen = HomeScreen(db_controller)
 
-    # Rejestracja dodatkowych ekranów
     voting_screen = VotingScreen(home_screen.stack, db_controller)
     shareholder_screen = ShareholderScreen(home_screen.stack, db_controller)
     meetings_screen = MeetingsScreen(home_screen.stack, db_controller)
 
-    # Przypisanie akcji do przycisku w HomeScreen
     home_screen.voting_button.clicked.connect(
         lambda: home_screen.stack.setCurrentWidget(voting_screen.voting_screen)
     )
@@ -76,7 +75,7 @@ def start_application(db_controller):
         lambda: home_screen.stack.setCurrentWidget(shareholder_screen.shareholders_screen)
     )
     home_screen.meetings_button.clicked.connect(
-        lambda: home_screen.stack.setCurrentWidget(shareholder_screen.shareholders_screen)
+        lambda: home_screen.stack.setCurrentWidget(meetings_screen.meeting_screen)
     )
     home_screen.show()
     app.exec()

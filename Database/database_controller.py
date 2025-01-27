@@ -200,3 +200,32 @@ class DatabaseController:
         query = "UPDATE Glosowania SET czy_zakonczone = 1 WHERE id = ?"
         self.execute_query(query, (voting_id,))
         print(f"Głosowanie o ID {voting_id} zostało zatwierdzone.")
+
+    def get_all_meetings(self):
+        """Zwraca wszystkie spotkania."""
+        query = "SELECT id, termin FROM Spotkania"
+        return self.execute_query(query, fetch_all=True)
+
+    def insert_meeting(self, date, duration, is_completed, admin_id):
+        """Dodaje nowe spotkanie do bazy danych."""
+        query = """
+        INSERT INTO Spotkania (termin, czas_trwania, czy_zakonczone, administrator)
+        VALUES (?, ?, ?, ?)
+        """
+        self.execute_query(query, (date, duration, is_completed, admin_id))
+
+    def delete_meeting(self, meeting_id):
+        """Usuwa spotkanie na podstawie ID."""
+        query = "DELETE FROM Spotkania WHERE id = ?"
+        self.execute_query(query, (meeting_id,))
+
+    def update_meeting(self, meeting_id, date=None, duration=None, is_completed=None):
+        """Aktualizuje dane spotkania."""
+        query = """
+        UPDATE Spotkania
+        SET termin = COALESCE(?, termin),
+            czas_trwania = COALESCE(?, czas_trwania),
+            czy_zakonczone = COALESCE(?, czy_zakonczone)
+        WHERE id = ?
+        """
+        self.execute_query(query, (date, duration, is_completed, meeting_id))
