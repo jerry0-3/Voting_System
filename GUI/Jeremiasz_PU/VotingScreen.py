@@ -8,6 +8,7 @@ from ..Piotr_PU.ApproveVoting import ApproveVoting
 
 class VotingScreen:
     def __init__(self, stack, db_controller):
+        self.current_meeting_id = None
         self.choises_label = None
         self.edit_voting_button = None
         self.approve_voting_button = None
@@ -31,6 +32,8 @@ class VotingScreen:
         self.init_ui()
         self.approve_voting_handler = ApproveVoting(self.db_controller, self.stack)
 
+    def set_current_meeting_id(self, meeting_id):
+        current_meeting_id = meeting_id
 
     def init_ui(self):
         """Tworzy potrzebne ekrany po naciśnięciu przycisku."""
@@ -149,7 +152,10 @@ class VotingScreen:
 
     def load_votings(self):
         self.voting_list.clear()
-        votings = self.db_controller.get_all_glosowania()
+        if self.current_meeting_id is None:
+            votings = self.db_controller.get_all_glosowania()
+        else:
+            votings = self.db_controller.get_glosowania_by_meeting_id(self.current_meeting_id)
         for voting in votings:
             self.voting_list.addItem(f"{voting[0]}: {voting[2]}")
 
@@ -221,7 +227,7 @@ class VotingScreen:
                 and self.validate_datetime(czas_trwania, time_pattern)
         ):
             self.db_controller.insert_glosowanie(
-                int(minimalne_udzialy), temat, termin, czas_trwania, czy_zakonczone
+                int(minimalne_udzialy), temat, termin, czas_trwania, czy_zakonczone, self.current_voting_id
             )
             self.load_votings()
             dialog.accept()

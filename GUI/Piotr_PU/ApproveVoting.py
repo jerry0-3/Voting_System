@@ -9,7 +9,7 @@ class ApproveVoting:
     def check_voting_conditions(self, voting_id):
         """Sprawdza, czy głosowanie spełnia wymagania do zatwierdzenia."""
         choices_count = self.db_controller.get_count_mozliwe_wybory(voting_id)
-        return choices_count >= 2  # Przykładowy warunek: głosowanie musi mieć co najmniej 2 wybory
+        return choices_count >= 2
 
     def approve_voting(self, voting_id, choices_screen, voting_screen, load_votings_callback):
         """Zatwierdza głosowanie, jeśli spełnia odpowiednie kryteria."""

@@ -92,24 +92,21 @@ class DatabaseController:
 
     def delete_udzialowiec(self, udzialowiec_id):
         try:
-            # Get waga_glosu ID
             waga_id = self.execute_query(
                 "SELECT waga_glosu FROM Udzialowcy WHERE id = ?",
                 (udzialowiec_id,),
                 fetch_one=True
             )
 
-            # Delete from Udzialowcy
             self.execute_query("DELETE FROM Udzialowcy WHERE id = ?", (udzialowiec_id,))
 
-            # Delete from Wagi_glosow if associated
             if waga_id:
                 self.execute_query("DELETE FROM Wagi_glosow WHERE id = ?", (waga_id[0],))
         except sqlite3.Error as e:
             print(f"An error occurred during deletion: {e}")
 
-    def insert_glosowanie(self, minimalne_udzialy, temat, termin, czas_trwania, czy_zakonczone,
-                          wybor_1='wybor 1', wybor_2='wybor 2', spotkanie=1, administrator=1):
+    def insert_glosowanie(self, minimalne_udzialy, temat, termin, czas_trwania, czy_zakonczone, spotkanie,
+                          wybor_1='wybor 1', wybor_2='wybor 2', administrator=1):
         try:
             # Insert into Glosowania
             self.execute_query(
@@ -122,7 +119,6 @@ class DatabaseController:
             )
             glosowanie_id = self.get_all_glosowania()[-1][0]
 
-            # Insert into Mozliwe_wybory
             self.insert_mozliwy_wybor(f'glosowanie {glosowanie_id} {wybor_1}', glosowanie_id)
             self.insert_mozliwy_wybor(f'glosowanie {glosowanie_id} {wybor_2}', glosowanie_id)
 
@@ -136,6 +132,10 @@ class DatabaseController:
     def get_glosowanie_by_id(self, glosowanie_id):
         query = "SELECT * FROM Glosowania WHERE id = ?"
         return self.execute_query(query, (glosowanie_id,), fetch_one=True)
+
+    def get_glosowania_by_meeting_id(self, meeting_id):
+        query = "SELECT * FROM Glosowania WHERE spotkanie = ?"
+        return self.execute_query(query, (meeting_id,), fetch_all=True)
 
     def update_glosowanie(self, glosowanie_id, minimalne_udzialy=None, temat=None, termin=None, czas_trwania=None,
                           czy_zakonczone=None):
