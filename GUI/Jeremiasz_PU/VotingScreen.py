@@ -352,6 +352,7 @@ class VotingScreen:
             print(self.current_choice_id, self.current_voting_id, new_text)
             self.db_controller.update_mozliwy_wybor(self.current_choice_id, self.current_voting_id, new_text)
             self.load_choices()
+            self.stack.setCurrentWidget(self.choices_screen)
 
     def delete_choice(self):
         count_mozliwe_wybory = self.db_controller.get_count_mozliwe_wybory(self.current_voting_id)

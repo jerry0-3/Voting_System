@@ -158,27 +158,32 @@ class ShareholderScreen:
 
     def save_changes(self):
         """Zapisuje zmiany udziałowca."""
-        confirm = QMessageBox.question(
-            self.shareholder_screen, "Potwierdzenie", "Czy na pewno zapisać zmiany?",
-            QMessageBox.Yes | QMessageBox.No
-        )
-        if confirm == QMessageBox.Yes:
-            login = self.fields["login"].text()
-            haslo = self.fields["hasło"].text()
-            imie = self.fields["imię"].text()
-            nazwisko = self.fields["nazwisko"].text()
-            udzialy = self.fields["udziały"].text()
+        login = self.fields["login"].text()
+        haslo = self.fields["hasło"].text()
+        imie = self.fields["imię"].text()
+        nazwisko = self.fields["nazwisko"].text()
+        udzialy = self.fields["udziały"].text()
 
-            self.db_controller.update_udzialowiec(
-                self.current_shareholder_id,
-                login=login,
-                haslo=haslo,
-                imie=imie,
-                nazwisko=nazwisko,
-                udzialy=int(udzialy) if udzialy.isdigit() else None
+        if login and haslo and imie and nazwisko and udzialy.isdigit():
+            confirm = QMessageBox.question(
+                self.shareholder_screen, "Potwierdzenie", "Czy na pewno zapisać zmiany?",
+                QMessageBox.Yes | QMessageBox.No
             )
-            self.load_shareholders()
-            self.stack.setCurrentWidget(self.shareholders_screen)
+
+            if confirm == QMessageBox.Yes:
+                self.db_controller.update_udzialowiec(
+                    self.current_shareholder_id,
+                    login=login,
+                    haslo=haslo,
+                    imie=imie,
+                    nazwisko=nazwisko,
+                    udzialy=int(udzialy) if udzialy.isdigit() else None
+                )
+                self.load_shareholders()
+                self.stack.setCurrentWidget(self.shareholders_screen)
+        else:
+            QMessageBox.warning(self.shareholder_screen, "Błąd", "Wszystkie pola muszą być wypełnione poprawnie!",
+                                QMessageBox.Ok)
 
     def delete_shareholder(self):
         """Usuwa udziałowca."""
