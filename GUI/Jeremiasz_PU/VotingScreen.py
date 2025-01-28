@@ -3,10 +3,17 @@ import re
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QMessageBox,
                                QInputDialog, QDialog, QLineEdit)
 from PySide6.QtCore import Qt
+from ..Piotr_PU.ApproveVoting import ApproveVoting
 
 
 class VotingScreen:
     def __init__(self, stack, db_controller):
+        self.current_meeting_title = None
+        self.current_meeting_id = None
+
+        self.choises_label = None
+        self.edit_voting_button = None
+        self.approve_voting_button = None
         self.current_choice_id = None
         self.current_voting_id = None
         self.back_button = None
@@ -17,15 +24,20 @@ class VotingScreen:
         self.back_to_voting_button = None
         self.add_choice_button = None
         self.choices_list = None
-        self.choices_label = None
+        self.title_label = None
         self.delete_voting_button = None
-        self.edit_voting_button = None
         self.choices_screen = None
         self.voting_list = None
         self.voting_screen = None
         self.stack = stack
         self.db_controller = db_controller
         self.init_ui()
+        self.approve_voting_handler = ApproveVoting(self.db_controller, self.stack)
+
+    def set_current_meeting_id(self, meeting_id):
+        current_meeting_id = meeting_id
+        self.current_meeting_title = self.db_controller.get_meeting_title_by_id(meeting_id)
+
 
     def init_ui(self):
         """Tworzy potrzebne ekrany po naciśnięciu przycisku."""
@@ -37,12 +49,20 @@ class VotingScreen:
         self.voting_screen = QWidget()
         layout = QVBoxLayout()
 
+        self.title_label = QLabel("<h1>Spotkanie</h1>")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.title_label)
+
         voting_label = QLabel("Głosowania")
         layout.addWidget(voting_label)
 
         self.voting_list = QListWidget()
         self.voting_list.itemClicked.connect(self.open_choices_screen)
         layout.addWidget(self.voting_list)
+
+        self.message_label = QLabel("")
+        self.message_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.message_label)
 
         buttons_layout = QHBoxLayout()
 
@@ -64,7 +84,40 @@ class VotingScreen:
         self.choices_screen = QWidget()
         layout = QVBoxLayout()
 
+        self.title_label = QLabel("<h1>Głosowanie: [Tytuł]</h1>")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.title_label)
+
+        # Poprawna inicjalizacja self.choices_label
+        self.choices_label = QLabel("Wybory w głosowaniu:")
+        layout.addWidget(self.choices_label)
+
+        # Lista wyborów
+        self.choices_list = QListWidget()
+        self.choices_list.clicked.connect(self.edit_choice_screen)
+        layout.addWidget(self.choices_list)
+
+        # Dolne przyciski: Dodaj wybór, Powrót
+        buttons_layout = QHBoxLayout()
+
+        self.add_choice_button = QPushButton("Dodaj wybór")
+        self.add_choice_button.clicked.connect(self.add_choice)
+        buttons_layout.addWidget(self.add_choice_button)
+
+        layout.addLayout(buttons_layout)
+
         top_buttons_layout = QHBoxLayout()
+
+        self.approve_voting_button = QPushButton("Zatwierdź głosowanie")
+        self.approve_voting_button.clicked.connect(
+            lambda: self.approve_voting_handler.approve_voting(
+                self.current_voting_id,
+                self.choices_screen,
+                self.voting_screen,
+                self.load_votings
+            )
+        )
+        top_buttons_layout.addWidget(self.approve_voting_button)
 
         self.edit_voting_button = QPushButton("Edytuj głosowanie")
         self.edit_voting_button.clicked.connect(self.edit_voting)
@@ -74,25 +127,12 @@ class VotingScreen:
         self.delete_voting_button.clicked.connect(self.delete_voting)
         top_buttons_layout.addWidget(self.delete_voting_button)
 
+        self.back_to_voting_button = QPushButton("Powrót")
+        self.back_to_voting_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.voting_screen))
+        top_buttons_layout.addWidget(self.back_to_voting_button)
+
         layout.addLayout(top_buttons_layout)
 
-        self.choices_label = QLabel("Wybory w głosowaniu")
-        layout.addWidget(self.choices_label)
-
-        self.choices_list = QListWidget()
-        self.choices_list.clicked.connect(self.edit_choice_screen)
-        layout.addWidget(self.choices_list)
-
-        buttons_layout = QHBoxLayout()
-        self.add_choice_button = QPushButton("Dodaj wybór")
-        self.add_choice_button.clicked.connect(self.add_choice)
-        buttons_layout.addWidget(self.add_choice_button)
-
-        self.back_to_voting_button = QPushButton("Powrót do głosowań")
-        self.back_to_voting_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.voting_screen))
-        buttons_layout.addWidget(self.back_to_voting_button)
-
-        layout.addLayout(buttons_layout)
         self.choices_screen.setLayout(layout)
         self.stack.addWidget(self.choices_screen)
 
@@ -123,14 +163,30 @@ class VotingScreen:
         self.stack.addWidget(self.choice_screen)
 
     def load_votings(self):
+        """Ładuje głosowania i ustawia odpowiednie wiadomości."""
         self.voting_list.clear()
-        votings = self.db_controller.get_all_glosowania()
-        for voting in votings:
-            self.voting_list.addItem(f"{voting[0]}: {voting[2]}")
+
+        # Ustawianie tytułu strony
+        if self.current_meeting_title:
+            self.title_label.setText(f"<h1>Spotkanie {self.current_meeting_title}</h1>")
+        else:
+            self.title_label.setText("<h1>Spotkanie </h1>")
+
+        if self.current_meeting_id is None:
+            votings = self.db_controller.get_all_glosowania()
+        else:
+            votings = self.db_controller.get_glosowania_by_meeting_id(self.current_meeting_id)
+
+        if not votings:
+            self.message_label.setText("Brak dostępnych głosowań.")
+        else:
+            self.message_label.setText("")  # Czyszczenie wiadomości, jeśli są głosowania
+            for voting in votings:
+                self.voting_list.addItem(f"{voting[0]}: {voting[2]}")
 
     def open_choices_screen(self, item):
         self.current_voting_id = int(item.text().split(":")[0])
-        self.choices_label.setText(f"Wybory w głosowaniu: {item.text().split(':')[1]}")
+        self.title_label.setText(f"<h1>Głosowanie: {item.text().split(':')[1]}</h1>")
         self.load_choices()
         self.stack.setCurrentWidget(self.choices_screen)
 
@@ -196,10 +252,14 @@ class VotingScreen:
                 and self.validate_datetime(czas_trwania, time_pattern)
         ):
             self.db_controller.insert_glosowanie(
-                int(minimalne_udzialy), temat, termin, czas_trwania, czy_zakonczone
+                int(minimalne_udzialy), temat, termin, czas_trwania, czy_zakonczone, self.current_voting_id
             )
             self.load_votings()
             dialog.accept()
+
+            QMessageBox.information(self.voting_screen, "Sukces", f"Głosowanie zostało pomyślnie stworzone!",
+                                    QMessageBox.Ok)
+
         else:
             QMessageBox.warning(dialog, "Błąd", "Wszystkie pola muszą być wypełnione poprawnie!", QMessageBox.Ok)
 

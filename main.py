@@ -25,13 +25,13 @@ if __name__ == '__main__':
     # for voting in votings:
     #     print(f"{voting[0]}: {voting[2]}")
 
-    waga_glosu_id = controller.execute_query("SELECT waga_glosu FROM Udzialowcy WHERE id = ?", (2,), fetch_one=True)[0]
+    # waga_glosu_id = controller.execute_query("SELECT waga_glosu FROM Udzialowcy WHERE id = ?", (2,), fetch_one=True)[0]
     # print(controller.execute_query("SELECT * FROM Wagi_glosow WHERE id = ?", (waga_glosu_id,), fetch_one=True))
     # controller.execute_query("""
     #     UPDATE Wagi_glosow
     #     SET udzialy = COALESCE(?, udzialy)
     #     WHERE id = ?
     #     """, (15, waga_glosu_id))
-    print(controller.execute_query("SELECT * FROM Wagi_glosow WHERE id = ?", (waga_glosu_id,), fetch_one=True))
+    # print(controller.execute_query("SELECT * FROM Wagi_glosow WHERE id = ?", (waga_glosu_id,), fetch_one=True))
 
     start_application(controller)

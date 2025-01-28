@@ -92,25 +92,23 @@ class DatabaseController:
 
     def delete_udzialowiec(self, udzialowiec_id):
         try:
-            # Get waga_glosu ID
             waga_id = self.execute_query(
                 "SELECT waga_glosu FROM Udzialowcy WHERE id = ?",
                 (udzialowiec_id,),
                 fetch_one=True
             )
 
-            # Delete from Udzialowcy
             self.execute_query("DELETE FROM Udzialowcy WHERE id = ?", (udzialowiec_id,))
 
-            # Delete from Wagi_glosow if associated
             if waga_id:
                 self.execute_query("DELETE FROM Wagi_glosow WHERE id = ?", (waga_id[0],))
         except sqlite3.Error as e:
             print(f"An error occurred during deletion: {e}")
 
-    def insert_glosowanie(self, minimalne_udzialy, temat, termin, czas_trwania, czy_zakonczone,
-                          wybor_1='wybor 1', wybor_2='wybor 2', spotkanie=1, administrator=1):
+    def insert_glosowanie(self, minimalne_udzialy, temat, termin, czas_trwania, czy_zakonczone, spotkanie,
+                          wybor_1='wybor 1', wybor_2='wybor 2', administrator=1):
         try:
+            if spotkanie is None: spotkanie = 1
             # Insert into Glosowania
             self.execute_query(
                 """
@@ -122,7 +120,6 @@ class DatabaseController:
             )
             glosowanie_id = self.get_all_glosowania()[-1][0]
 
-            # Insert into Mozliwe_wybory
             self.insert_mozliwy_wybor(f'glosowanie {glosowanie_id} {wybor_1}', glosowanie_id)
             self.insert_mozliwy_wybor(f'glosowanie {glosowanie_id} {wybor_2}', glosowanie_id)
 
@@ -136,6 +133,10 @@ class DatabaseController:
     def get_glosowanie_by_id(self, glosowanie_id):
         query = "SELECT * FROM Glosowania WHERE id = ?"
         return self.execute_query(query, (glosowanie_id,), fetch_one=True)
+
+    def get_glosowania_by_meeting_id(self, meeting_id):
+        query = "SELECT * FROM Glosowania WHERE spotkanie = ?"
+        return self.execute_query(query, (meeting_id,), fetch_all=True)
 
     def update_glosowanie(self, glosowanie_id, minimalne_udzialy=None, temat=None, termin=None, czas_trwania=None,
                           czy_zakonczone=None):
@@ -195,3 +196,48 @@ class DatabaseController:
     def get_count_mozliwe_wybory(self, glosowanie_id):
         query = "SELECT COUNT(*) FROM Mozliwe_wybory WHERE glosowanie = ?"
         return self.execute_query(query, (glosowanie_id,), fetch_one=True)[0]
+
+    def approve_glosowanie(self, voting_id):
+        query = "UPDATE Glosowania SET czy_zakonczone = 1 WHERE id = ?"
+        self.execute_query(query, (voting_id,))
+        print(f"Głosowanie o ID {voting_id} zostało zatwierdzone.")
+
+    def get_all_meetings(self):
+        """Zwraca wszystkie spotkania."""
+        query = "SELECT id, termin FROM Spotkania"
+        return self.execute_query(query, fetch_all=True)
+
+    def insert_meeting(self, date, duration, is_completed, admin_id):
+        """Dodaje nowe spotkanie do bazy danych."""
+        query = """
+        INSERT INTO Spotkania (termin, czas_trwania, czy_zakonczone, administrator)
+        VALUES (?, ?, ?, ?)
+        """
+        self.execute_query(query, (date, duration, is_completed, admin_id))
+
+    def get_meeting_title_by_id(self, meeting_id):
+        """
+        Pobiera tytuł (termin) spotkania na podstawie jego ID.
+
+        :param meeting_id: ID spotkania
+        :return: Tytuł (termin) spotkania jako string lub None, jeśli nie znaleziono
+        """
+        query = "SELECT termin FROM Spotkania WHERE id = ?"
+        result = self.execute_query(query, (meeting_id,), fetch_one=True)
+        return result[0] if result else None
+
+    def delete_meeting(self, meeting_id):
+        """Usuwa spotkanie na podstawie ID."""
+        query = "DELETE FROM Spotkania WHERE id = ?"
+        self.execute_query(query, (meeting_id,))
+
+    def update_meeting(self, meeting_id, date=None, duration=None, is_completed=None):
+        """Aktualizuje dane spotkania."""
+        query = """
+        UPDATE Spotkania
+        SET termin = COALESCE(?, termin),
+            czas_trwania = COALESCE(?, czas_trwania),
+            czy_zakonczone = COALESCE(?, czy_zakonczone)
+        WHERE id = ?
+        """
+        self.execute_query(query, (date, duration, is_completed, meeting_id))
