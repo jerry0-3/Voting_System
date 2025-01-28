@@ -1,10 +1,9 @@
-from typing import re
+import re
 
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem,
-                               QMessageBox, QInputDialog, QDialog, QLineEdit)
+                               QMessageBox, QDialog, QLineEdit)
 from PySide6.QtCore import Qt
 from ..Jeremiasz_PU.VotingScreen import VotingScreen
-
 
 
 class MeetingsScreen:

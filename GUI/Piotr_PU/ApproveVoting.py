@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QMessageBox
-from Voting_System.Database.database_controller import DatabaseController
+
 
 class ApproveVoting:
     def __init__(self, db_controller, stack):

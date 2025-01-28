@@ -1,10 +1,9 @@
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QMainWindow, QApplication, QStackedWidget, QWidget, QLabel
 from PySide6.QtCore import Qt
 
-from Voting_System.GUI.Jeremiasz_PU.ShareholderScreen import ShareholderScreen
-from Voting_System.GUI.Jeremiasz_PU.VotingScreen import VotingScreen
-
-from Voting_System.GUI.Piotr_PU.MeetingsScreen import MeetingsScreen
+from GUI.Jeremiasz_PU.ShareholderScreen import ShareholderScreen
+from GUI.Jeremiasz_PU.VotingScreen import VotingScreen
+from GUI.Piotr_PU.MeetingsScreen import MeetingsScreen
 
 
 class HomeScreen(QMainWindow):
