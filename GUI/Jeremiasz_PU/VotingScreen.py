@@ -35,9 +35,7 @@ class VotingScreen:
         self.approve_voting_handler = ApproveVoting(self.db_controller, self.stack)
 
     def set_current_meeting_id(self, meeting_id):
-        current_meeting_id = meeting_id
         self.current_meeting_title = self.db_controller.get_meeting_title_by_id(meeting_id)
-
 
     def init_ui(self):
         """Tworzy potrzebne ekrany po naciśnięciu przycisku."""
