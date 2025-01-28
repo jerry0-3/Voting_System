@@ -11,7 +11,7 @@ class VotingScreen:
         self.current_meeting_title = None
         self.current_meeting_id = None
 
-        self.choises_label = None
+        self.choices_label = None
         self.edit_voting_button = None
         self.approve_voting_button = None
         self.current_choice_id = None
