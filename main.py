@@ -1,4 +1,5 @@
 from Database import create_tables, DatabaseController, insert_start_values
+from Database.insert_test_values import insert_start_spotkania
 from GUI.HomeScreen import start_application
 
 if __name__ == '__main__':
@@ -33,5 +34,5 @@ if __name__ == '__main__':
     #     WHERE id = ?
     #     """, (15, waga_glosu_id))
     # print(controller.execute_query("SELECT * FROM Wagi_glosow WHERE id = ?", (waga_glosu_id,), fetch_one=True))
-
+    print(controller.get_all_meetings())
     start_application(controller)
