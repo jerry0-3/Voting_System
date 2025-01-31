@@ -39,9 +39,6 @@ class HomeScreen(QMainWindow):
         title_label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(title_label)
 
-        self.voting_button = QPushButton("Przejdź do głosowań")
-        self.voting_button.clicked.connect(lambda: print("placeholder function"))
-
         self.shareholders_button = QPushButton("Przejdź do udziałowców")
         self.shareholders_button.clicked.connect(lambda: print("placeholder function"))
 
@@ -50,7 +47,6 @@ class HomeScreen(QMainWindow):
 
         self.layout.addStretch()
         self.layout.addWidget(self.meetings_button, alignment=Qt.AlignCenter)
-        self.layout.addWidget(self.voting_button, alignment=Qt.AlignCenter)
         self.layout.addWidget(self.shareholders_button, alignment=Qt.AlignCenter)
         self.layout.addStretch()
 
@@ -63,13 +59,9 @@ def start_application(db_controller):
 
     home_screen = HomeScreen(db_controller)
 
-    voting_screen = VotingScreen(home_screen.stack, db_controller)
     shareholder_screen = ShareholderScreen(home_screen.stack, db_controller)
     meetings_screen = MeetingsScreen(home_screen.stack, db_controller)
 
-    home_screen.voting_button.clicked.connect(
-        lambda: home_screen.stack.setCurrentWidget(voting_screen.voting_screen)
-    )
     home_screen.shareholders_button.clicked.connect(
         lambda: home_screen.stack.setCurrentWidget(shareholder_screen.shareholders_screen)
     )

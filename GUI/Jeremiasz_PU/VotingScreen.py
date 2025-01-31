@@ -36,6 +36,7 @@ class VotingScreen:
 
     def set_current_meeting_id(self, meeting_id):
         self.current_meeting_title = self.db_controller.get_meeting_title_by_id(meeting_id)
+        self.current_meeting_id = meeting_id
 
     def init_ui(self):
         """Tworzy potrzebne ekrany po naciśnięciu przycisku."""
@@ -69,7 +70,7 @@ class VotingScreen:
         buttons_layout.addWidget(add_voting_button)
 
         back_button = QPushButton("Powrót")
-        back_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.stack.widget(0)))
+        back_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.stack.widget(5)))
         buttons_layout.addWidget(back_button)
 
         layout.addLayout(buttons_layout)
@@ -250,7 +251,7 @@ class VotingScreen:
                 and self.validate_datetime(czas_trwania, time_pattern)
         ):
             self.db_controller.insert_glosowanie(
-                int(minimalne_udzialy), temat, termin, czas_trwania, czy_zakonczone, self.current_voting_id
+                int(minimalne_udzialy), temat, termin, czas_trwania, czy_zakonczone, self.current_meeting_id
             )
             self.load_votings()
             dialog.accept()
