@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, MagicMock
 from PySide6.QtWidgets import QApplication, QStackedWidget, QMessageBox, QInputDialog
-from GUI.Jeremiasz_PU.VotingScreen import VotingScreen
+from GUI.Voting.VotingScreen import VotingScreen
 
 
 # Fixture do inicjalizacji QApplication

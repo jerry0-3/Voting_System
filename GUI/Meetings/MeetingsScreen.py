@@ -3,7 +3,7 @@ import re
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem,
                                QMessageBox, QDialog, QLineEdit)
 from PySide6.QtCore import Qt
-from ..Jeremiasz_PU.VotingScreen import VotingScreen
+from ..Voting.VotingScreen import VotingScreen
 
 
 class MeetingsScreen:

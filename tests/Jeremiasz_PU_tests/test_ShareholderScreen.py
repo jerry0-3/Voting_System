@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock
 from PySide6.QtWidgets import QApplication, QStackedWidget, QMessageBox
-from GUI.Jeremiasz_PU.ShareholderScreen import ShareholderScreen
+from GUI.Shareholders.ShareholderScreen import ShareholderScreen
 
 
 # Fixture do inicjalizacji QApplication

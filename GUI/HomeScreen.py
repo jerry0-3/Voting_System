@@ -1,8 +1,7 @@
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QMainWindow, QApplication, QStackedWidget, QWidget, QLabel
 from PySide6.QtCore import Qt
 
-from GUI.Jeremiasz_PU.ShareholderScreen import ShareholderScreen
-from GUI.Jeremiasz_PU.VotingScreen import VotingScreen
+from GUI.Shareholders.ShareholderScreen import ShareholderScreen
 from GUI.Piotr_PU.MeetingsScreen import MeetingsScreen
 
 
