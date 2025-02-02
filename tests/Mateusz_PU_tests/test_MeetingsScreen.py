@@ -3,7 +3,8 @@ from PySide6.QtWidgets import QApplication, QStackedWidget, QDialog, QLineEdit, 
 from PySide6.QtCore import Qt
 from unittest.mock import MagicMock
 
-from GUI.Piotr_PU.MeetingsScreen import MeetingsScreen
+from GUI.Meetings.MeetingsScreen import MeetingsScreen
+
 
 @pytest.fixture
 def app(qtbot):
@@ -13,10 +14,12 @@ def app(qtbot):
         app = QApplication([])
     return app
 
+
 @pytest.fixture
 def stack():
     """Fixture to create a QStackedWidget."""
     return QStackedWidget()
+
 
 @pytest.fixture
 def db_controller():
@@ -24,6 +27,7 @@ def db_controller():
     mock_db = MagicMock()
     mock_db.get_all_meetings.return_value = [(6, '2025-01-30 15:00:00')]
     return mock_db
+
 
 @pytest.fixture
 def meetings_screen(stack, db_controller, qtbot):
