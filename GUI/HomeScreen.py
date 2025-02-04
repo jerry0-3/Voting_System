@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QVBoxLayout, QPushButton, QMainWindow, QApplicatio
 from PySide6.QtCore import Qt
 
 from GUI.Shareholders.ShareholderScreen import ShareholderScreen
-from GUI.Piotr_PU.MeetingsScreen import MeetingsScreen
+from GUI.Meetings.MeetingsScreen import MeetingsScreen
 
 
 class HomeScreen(QMainWindow):
