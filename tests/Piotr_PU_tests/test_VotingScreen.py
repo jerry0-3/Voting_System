@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 from PySide6.QtWidgets import QApplication, QStackedWidget, QMessageBox, QDialog, QLabel, QPushButton, QListWidget
 from GUI.Voting.VotingScreen import VotingScreen
 
+
 @pytest.fixture(scope="module")
 def app():
     import sys
@@ -10,12 +11,14 @@ def app():
     yield app
     app.quit()
 
+
 @pytest.fixture
 def mock_stack():
     stack = Mock(spec=QStackedWidget)
     stack.addWidget = Mock()
     stack.setCurrentWidget = Mock()
     return stack
+
 
 # Fixture do mockowania kontrolera bazy danych
 @pytest.fixture
@@ -27,11 +30,13 @@ def mock_db_controller():
     db_controller.update_glosowanie = Mock()
     return db_controller
 
+
 def test_init_ui(app, mock_stack, mock_db_controller):
     """Test inicjalizacji interfejsu użytkownika."""
     screen = VotingScreen(mock_stack, mock_db_controller)
     assert screen.voting_screen is not None, "Ekran głosowań nie został poprawnie zainicjalizowany."
     mock_stack.addWidget.assert_called()
+
 
 def test_user_can_create_voting(app, mock_stack, mock_db_controller):
     """Test sprawdzający, czy użytkownik może utworzyć nowe głosowanie."""
@@ -47,6 +52,7 @@ def test_user_can_create_voting(app, mock_stack, mock_db_controller):
     screen.save_new_voting(dialog_mock, fields_mock)
     mock_db_controller.insert_glosowanie.assert_called_once()
 
+
 def test_user_can_approve_voting(app, mock_stack, mock_db_controller):
     """Test sprawdzający, czy użytkownik może zatwierdzić głosowanie."""
     screen = VotingScreen(mock_stack, mock_db_controller)
@@ -54,6 +60,7 @@ def test_user_can_approve_voting(app, mock_stack, mock_db_controller):
     QMessageBox.question = Mock(return_value=QMessageBox.Yes)
     screen.approve_voting_button = QPushButton()
     screen.approve_voting_button.click()
+
 
 def test_user_can_edit_voting(app, mock_stack, mock_db_controller):
     """Test sprawdzający, czy użytkownik może edytować istniejące głosowanie."""
@@ -68,4 +75,6 @@ def test_user_can_edit_voting(app, mock_stack, mock_db_controller):
         "czy zakończone": Mock(text=Mock(return_value="Nie"))
     }
     screen.save_edited_voting(dialog_mock, fields_mock)
-    mock_db_controller.update_glosowanie.assert_called_once_with(1, minimalne_udzialy=15, temat="Zmienione głosowanie", termin="2025-02-01 15:00:00", czas_trwania="02:00:00", czy_zakonczone=False)
+    mock_db_controller.update_glosowanie.assert_called_once_with(1, minimalne_udzialy=15, temat="Zmienione głosowanie",
+                                                                 termin="2025-02-01 15:00:00", czas_trwania="02:00:00",
+                                                                 czy_zakonczone=False)

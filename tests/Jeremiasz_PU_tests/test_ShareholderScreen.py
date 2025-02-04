@@ -109,4 +109,3 @@ def test_delete_shareholder(app, mock_stack, mock_db_controller):
 
     # Sprawdzenie, czy nastąpiło przejście na ekran listy udziałowców
     mock_stack.setCurrentWidget.assert_called_once_with(screen.shareholders_screen)
-

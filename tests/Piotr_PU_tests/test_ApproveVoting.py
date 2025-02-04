@@ -8,6 +8,7 @@ class TestApproveVoting(unittest.TestCase):
     """
     Zestaw testów dla klasy ApproveVoting.
     """
+
     def setUp(self):
         """Inicjalizuje zależności mockowane przed każdym testem."""
         self.db_mock = Mock()
